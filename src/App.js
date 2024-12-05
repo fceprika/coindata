@@ -89,11 +89,13 @@ const App = () => {
       );
 
       if (!tokenResponse.ok) {
-        throw new Error("Token not found");
+        throw new Error("Mobula API: Token not found");
       }
 
       const tokenData = await tokenResponse.json();
       setTokenData(tokenData.data);
+
+      console.log(tokenData);
 
       // Fetch historical price data
       const historyResponse = await fetch(
@@ -102,7 +104,7 @@ const App = () => {
       );
 
       if (!historyResponse.ok) {
-        throw new Error("Unable to fetch historical data");
+        throw new Error("Mobula API: Unable to fetch historical data");
       }
 
       const historyData = await historyResponse.json();
@@ -184,10 +186,10 @@ const App = () => {
           <h2>{tokenData.name}</h2>
           <p>Symbol: {tokenData.symbol.toUpperCase()}</p>
           <p>Market Cap (USD): {formatNumber(tokenData.market_cap)}</p>
-          <p>Volume: {formatNumber(tokenData.volume)}</p>
+          <p>Volume (24h): {formatNumber(tokenData.volume_24h)}</p>
           <p>Liquidity: {formatNumber(tokenData.liquidity)}</p>
-          <p>Total Supply: {tokenData.total_supply}</p>
-          <p>Max Supply: {tokenData.max_supply || "N/A"}</p>
+          <p>Circulating Supply Supply: {tokenData.circulating_supply}</p>
+          <p>Max Supply: {tokenData.total_supply || "N/A"}</p>
           <p>Current Price (USD): {formatNumber(tokenData.price)}</p>
           <p>
             Fully-Diluted Value (FDV):{" "}
