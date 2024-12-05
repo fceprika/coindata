@@ -28,6 +28,8 @@ const App = () => {
   const [priceHistory, setPriceHistory] = useState([]);
   const [error, setError] = useState(null);
   const apiKeyBscScan = "CCIYNJ5QSAK17ASFS38AK3GWJKYFU4CA9Q";
+  const apiKeyEtherscan = "DNCRZX9T6MI5F6UFRQFF7G7393D13FEGE6";
+  const apiKeyArbiscan = "4YPNKXQPS4FNPI1RM1KPEEXVBYK4GFB7ZV";
   const apiKeyMobula = "d363d0c5-46e0-434e-855a-05aeb9c597eb";
 
   const fetchTokenData = async () => {
@@ -41,10 +43,30 @@ const App = () => {
       setTokenData(null);
       setPriceHistory([]);
 
-      // Call the BscScan API to check for the SRG20 Token
-      const abiResponse = await fetch(
-        `https://api.bscscan.com/api?module=contract&action=getabi&address=${tokenId}&apikey=${apiKeyBscScan}`
-      );
+      // Map selected network to blockchain parameter
+      const blockchainMap = {
+        BNB: "bnb",
+        ETH: "eth",
+        ARB: "arbitrum",
+      };
+
+      const blockchain = blockchainMap[selectedNetwork];
+
+      // Determine which API to use for ABI check
+      let abiUrl;
+      if (selectedNetwork === "BNB") {
+        abiUrl = `https://api.bscscan.com/api?module=contract&action=getabi&address=${tokenId}&apikey=${apiKeyBscScan}`;
+      } else if (selectedNetwork === "ETH") {
+        abiUrl = `https://api.etherscan.io/v2/api?chainid=1&module=contract&action=getabi&address=${tokenId}&apikey=${apiKeyEtherscan}`;
+      } else if (selectedNetwork === "ARB") {
+        abiUrl = `https://api.arbiscan.io/api?module=contract&action=getabi&address=${tokenId}&apikey=${apiKeyArbiscan}`;
+      } else {
+        setError("ABI check for this network is not supported.");
+        return;
+      }
+
+      // Call the respective ABI API
+      const abiResponse = await fetch(abiUrl);
       const abiData = await abiResponse.json();
 
       if (!abiData.result || !abiData.result.includes("amountSRGLiq")) {
@@ -60,9 +82,9 @@ const App = () => {
         },
       };
 
-      // Fetch token market data
+      // Fetch token market data from Mobula API with blockchain
       const tokenResponse = await fetch(
-        `https://api.mobula.io/api/1/market/data?asset=${tokenId}`,
+        `https://api.mobula.io/api/1/metadata?blockchain=${blockchain}&asset=${tokenId}`,
         options
       );
 
@@ -75,7 +97,7 @@ const App = () => {
 
       // Fetch historical price data
       const historyResponse = await fetch(
-        `https://api.mobula.io/api/1/market/history?asset=${tokenId}`,
+        `https://api.mobula.io/api/1/market/history?blockchain=${blockchain}&asset=${tokenId}`,
         options
       );
 
